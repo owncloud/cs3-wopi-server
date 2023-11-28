@@ -24,7 +24,7 @@ func CheckFileInfo(app *demoApp, w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	wopiContext, _ := WopiContextFromCtx(ctx)
 
-	statRes, err := app.gwc.Stat(ctx, &providerv1beta1.StatRequest{
+	statRes, err := app.GatewayAPIClient.Stat(ctx, &providerv1beta1.StatRequest{
 		Ref: &wopiContext.FileReference,
 	})
 	if err != nil {
@@ -68,8 +68,11 @@ func CheckFileInfo(app *demoApp, w http.ResponseWriter, r *http.Request) {
 
 		SupportsExtendedLockLength: true,
 
-		SupportsGetLock: true,
-		SupportsLocks:   true,
+		SupportsGetLock:        true,
+		SupportsLocks:          true,
+		SupportedShareUrlTypes: make([]string, 0),
+		SupportsContainers:     false,
+		SupportsAddActivities:  false,
 	}
 
 	switch wopiContext.ViewMode {

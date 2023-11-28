@@ -126,6 +126,8 @@ type FileInfo struct {
 	IsEduUser bool `json:"IsEduUser,omitempty"`
 	// A Boolean value indicating whether the user is a business user or not.
 	LicenseCheckForEditIsEnabled bool `json:"LicenseCheckForEditIsEnabled,omitempty"`
+	// A Boolean value indicating whether activities are supported
+	SupportsAddActivities bool `json:"SupportsAddActivities,omitempty"`
 
 	// ------------
 	// Collabora WOPI check file info specification:

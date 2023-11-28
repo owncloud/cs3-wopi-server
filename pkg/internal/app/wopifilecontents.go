@@ -17,7 +17,7 @@ func GetFile(app *demoApp, w http.ResponseWriter, r *http.Request) {
 	resp, err := helpers.DownloadFile(
 		ctx,
 		&wopiContext.FileReference,
-		app.gwc,
+		app.GatewayAPIClient,
 		wopiContext.AccessToken,
 		app.Config.CS3DataGatewayInsecure,
 		app.Logger,
@@ -70,7 +70,7 @@ func PutFile(app *demoApp, w http.ResponseWriter, r *http.Request) {
 		ctx,
 		r.Body,
 		&wopiContext.FileReference,
-		app.gwc,
+		app.GatewayAPIClient,
 		wopiContext.AccessToken,
 		r.Header.Get(HeaderWopiLock),
 		app.Config.CS3DataGatewayInsecure,

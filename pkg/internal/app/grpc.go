@@ -44,7 +44,7 @@ func (app *demoApp) OpenInApp(
 	meReq := &gatewayv1beta1.WhoAmIRequest{
 		Token: req.AccessToken,
 	}
-	meResp, err := app.gwc.WhoAmI(ctx, meReq)
+	meResp, err := app.GatewayAPIClient.WhoAmI(ctx, meReq)
 	if err == nil {
 		if meResp.Status.Code == rpcv1beta1.Code_CODE_OK {
 			user = meResp.User
