@@ -50,9 +50,11 @@ func CheckFileInfo(app *demoApp, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// must be a pointer otherwise empty files will not have the property set in JSON response
+	size := int64(statRes.Info.Size)
 	fileInfo := FileInfo{
 		OwnerID:           statRes.Info.Owner.OpaqueId + "@" + statRes.Info.Owner.Idp,
-		Size:              int64(statRes.Info.Size),
+		Size:              &size,
 		Version:           statRes.Info.Mtime.String(),
 		BaseFileName:      path.Base(statRes.Info.Path),
 		BreadcrumbDocName: path.Base(statRes.Info.Path),

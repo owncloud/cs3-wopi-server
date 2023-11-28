@@ -13,7 +13,7 @@ type FileInfo struct {
 	// A string value uniquely identifying the user currently accessing the file.
 	UserID string `json:"UserId,omitempty"`
 	// The size of the file in bytes, expressed as a long, a 64-bit signed integer.
-	Size int64 `json:"Size,omitempty"`
+	Size *int64 `json:"Size,omitempty"`
 	// The current version of the file based on the server’s file version schema, as a string. This value must change when the file changes, and version values must never repeat for a given file.
 	Version string `json:"Version,omitempty"`
 	// A string that is the name of the user, suitable for displaying in UI.
