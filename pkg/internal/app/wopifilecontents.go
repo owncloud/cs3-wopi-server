@@ -28,8 +28,7 @@ func GetFile(app *demoApp, w http.ResponseWriter, r *http.Request) {
 			Err(err).
 			Str("FileReference", wopiContext.FileReference.String()).
 			Str("ViewMode", wopiContext.ViewMode.String()).
-			Str("Requester", wopiContext.User.GetUsername()).
-			Str("RequesterDisplayName", wopiContext.User.GetDisplayName()).
+			Str("Requester", wopiContext.User.GetId().String()).
 			Int("HttpCode", resp.StatusCode).
 			Msg("GetFile: downloading the file failed")
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -43,8 +42,7 @@ func GetFile(app *demoApp, w http.ResponseWriter, r *http.Request) {
 		app.Logger.Error().
 			Str("FileReference", wopiContext.FileReference.String()).
 			Str("ViewMode", wopiContext.ViewMode.String()).
-			Str("Requester", wopiContext.User.GetUsername()).
-			Str("RequesterDisplayName", wopiContext.User.GetDisplayName()).
+			Str("Requester", wopiContext.User.GetId().String()).
 			Msg("GetFile: copying the file content to the response body failed")
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
@@ -53,8 +51,7 @@ func GetFile(app *demoApp, w http.ResponseWriter, r *http.Request) {
 	app.Logger.Debug().
 		Str("FileReference", wopiContext.FileReference.String()).
 		Str("ViewMode", wopiContext.ViewMode.String()).
-		Str("Requester", wopiContext.User.GetUsername()).
-		Str("RequesterDisplayName", wopiContext.User.GetDisplayName()).
+		Str("Requester", wopiContext.User.GetId().String()).
 		Msg("GetFile: success")
 	http.Error(w, "", http.StatusOK)
 }
@@ -85,8 +82,7 @@ func PutFile(app *demoApp, w http.ResponseWriter, r *http.Request) {
 			Err(err).
 			Str("FileReference", wopiContext.FileReference.String()).
 			Str("ViewMode", wopiContext.ViewMode.String()).
-			Str("Requester", wopiContext.User.GetUsername()).
-			Str("RequesterDisplayName", wopiContext.User.GetDisplayName()).
+			Str("Requester", wopiContext.User.GetId().String()).
 			Msg("PutFile: uploading the file failed")
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
@@ -95,8 +91,7 @@ func PutFile(app *demoApp, w http.ResponseWriter, r *http.Request) {
 	app.Logger.Debug().
 		Str("FileReference", wopiContext.FileReference.String()).
 		Str("ViewMode", wopiContext.ViewMode.String()).
-		Str("Requester", wopiContext.User.GetUsername()).
-		Str("RequesterDisplayName", wopiContext.User.GetDisplayName()).
+		Str("Requester", wopiContext.User.GetId().String()).
 		Msg("PutFile: success")
 	http.Error(w, "", http.StatusOK)
 }

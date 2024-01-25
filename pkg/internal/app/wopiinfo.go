@@ -32,8 +32,7 @@ func CheckFileInfo(app *demoApp, w http.ResponseWriter, r *http.Request) {
 			Err(err).
 			Str("FileReference", wopiContext.FileReference.String()).
 			Str("ViewMode", wopiContext.ViewMode.String()).
-			Str("Requester", wopiContext.User.GetUsername()).
-			Str("RequesterDisplayName", wopiContext.User.GetDisplayName()).
+			Str("Requester", wopiContext.User.GetId().String()).
 			Msg("CheckFileInfo: stat failed")
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
@@ -43,8 +42,7 @@ func CheckFileInfo(app *demoApp, w http.ResponseWriter, r *http.Request) {
 		app.Logger.Error().
 			Str("FileReference", wopiContext.FileReference.String()).
 			Str("ViewMode", wopiContext.ViewMode.String()).
-			Str("Requester", wopiContext.User.GetUsername()).
-			Str("RequesterDisplayName", wopiContext.User.GetDisplayName()).
+			Str("Requester", wopiContext.User.GetId().String()).
 			Str("StatusCode", statRes.Status.Code.String()).
 			Str("StatusMsg", statRes.Status.Message).
 			Msg("CheckFileInfo: stat failed with status " + statRes.Status.Code.String())
@@ -120,8 +118,7 @@ func CheckFileInfo(app *demoApp, w http.ResponseWriter, r *http.Request) {
 			Err(err).
 			Str("FileReference", wopiContext.FileReference.String()).
 			Str("ViewMode", wopiContext.ViewMode.String()).
-			Str("Requester", wopiContext.User.GetUsername()).
-			Str("RequesterDisplayName", wopiContext.User.GetDisplayName()).
+			Str("Requester", wopiContext.User.GetId().String()).
 			Msg("CheckFileInfo: failed to marshal fileinfo")
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
@@ -130,8 +127,7 @@ func CheckFileInfo(app *demoApp, w http.ResponseWriter, r *http.Request) {
 	app.Logger.Debug().
 		Str("FileReference", wopiContext.FileReference.String()).
 		Str("ViewMode", wopiContext.ViewMode.String()).
-		Str("Requester", wopiContext.User.GetUsername()).
-		Str("RequesterDisplayName", wopiContext.User.GetDisplayName()).
+		Str("Requester", wopiContext.User.GetId().String()).
 		RawJSON("Fileinfo", jsonFileInfo).
 		Msg("CheckFileInfo: success")
 

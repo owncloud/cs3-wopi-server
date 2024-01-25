@@ -114,8 +114,7 @@ func (app *demoApp) OpenInApp(
 			Err(err).
 			Str("FileReference", providerFileRef.String()).
 			Str("ViewMode", req.ViewMode.String()).
-			Str("Requester", user.GetUsername()).
-			Str("RequesterDisplayName", user.GetDisplayName()).
+			Str("Requester", user.GetId().String()).
 			Msg("OpenInApp: error parsing viewAppUrl")
 		return nil, err
 	}
@@ -125,8 +124,7 @@ func (app *demoApp) OpenInApp(
 			Err(err).
 			Str("FileReference", providerFileRef.String()).
 			Str("ViewMode", req.ViewMode.String()).
-			Str("Requester", user.GetUsername()).
-			Str("RequesterDisplayName", user.GetDisplayName()).
+			Str("Requester", user.GetId().String()).
 			Msg("OpenInApp: error parsing editAppUrl")
 		return nil, err
 	}
@@ -142,8 +140,7 @@ func (app *demoApp) OpenInApp(
 			Err(err).
 			Str("FileReference", providerFileRef.String()).
 			Str("ViewMode", req.ViewMode.String()).
-			Str("Requester", user.GetUsername()).
-			Str("RequesterDisplayName", user.GetDisplayName()).
+			Str("Requester", user.GetId().String()).
 			Msg("OpenInApp: error encrypting access token")
 		return &appproviderv1beta1.OpenInAppResponse{
 			Status: &rpcv1beta1.Status{Code: rpcv1beta1.Code_CODE_INTERNAL},
@@ -167,8 +164,7 @@ func (app *demoApp) OpenInApp(
 			Err(err).
 			Str("FileReference", providerFileRef.String()).
 			Str("ViewMode", req.ViewMode.String()).
-			Str("Requester", user.GetUsername()).
-			Str("RequesterDisplayName", user.GetDisplayName()).
+			Str("Requester", user.GetId().String()).
 			Msg("OpenInApp: error parsing JWT token")
 		return nil, err
 	}
@@ -188,8 +184,7 @@ func (app *demoApp) OpenInApp(
 			Err(err).
 			Str("FileReference", providerFileRef.String()).
 			Str("ViewMode", req.ViewMode.String()).
-			Str("Requester", user.GetUsername()).
-			Str("RequesterDisplayName", user.GetDisplayName()).
+			Str("Requester", user.GetId().String()).
 			Msg("OpenInApp: error signing access token")
 		return &appproviderv1beta1.OpenInAppResponse{
 			Status: &rpcv1beta1.Status{Code: rpcv1beta1.Code_CODE_INTERNAL},
@@ -199,8 +194,7 @@ func (app *demoApp) OpenInApp(
 	app.Logger.Debug().
 		Str("FileReference", providerFileRef.String()).
 		Str("ViewMode", req.ViewMode.String()).
-		Str("Requester", user.GetUsername()).
-		Str("RequesterDisplayName", user.GetDisplayName()).
+		Str("Requester", user.GetId().String()).
 		Msg("OpenInApp: success")
 
 	return &appproviderv1beta1.OpenInAppResponse{
