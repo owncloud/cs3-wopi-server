@@ -53,7 +53,7 @@ func (app *demoApp) OpenInApp(
 
 	// required for the response, it will be used also for logs
 	providerFileRef := providerv1beta1.Reference{
-		ResourceId: req.GetResourceInfo().Id,
+		ResourceId: req.GetResourceInfo().GetId(),
 		Path:       ".",
 	}
 

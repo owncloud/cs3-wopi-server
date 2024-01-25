@@ -45,7 +45,7 @@ func CheckFileInfo(app *demoApp, w http.ResponseWriter, r *http.Request) {
 			Str("Requester", wopiContext.User.GetId().String()).
 			Str("StatusCode", statRes.Status.Code.String()).
 			Str("StatusMsg", statRes.Status.Message).
-			Msg("CheckFileInfo: stat failed with status " + statRes.Status.Code.String())
+			Msg("CheckFileInfo: stat failed with unexpected status")
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
@@ -128,7 +128,6 @@ func CheckFileInfo(app *demoApp, w http.ResponseWriter, r *http.Request) {
 		Str("FileReference", wopiContext.FileReference.String()).
 		Str("ViewMode", wopiContext.ViewMode.String()).
 		Str("Requester", wopiContext.User.GetId().String()).
-		RawJSON("Fileinfo", jsonFileInfo).
 		Msg("CheckFileInfo: success")
 
 	w.Header().Set("Content-Type", "application/json")

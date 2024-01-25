@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 
 	"github.com/beevik/etree"
@@ -50,7 +49,7 @@ func getAppURLs(wopiAppUrl string, insecure bool, logger log.Logger) (map[string
 		logger.Error().
 			Str("WopiAppUrl", wopiAppUrl).
 			Int("HttpCode", httpResp.StatusCode).
-			Msg("WopiDiscovery: wopi app url failed with code " + strconv.Itoa(httpResp.StatusCode))
+			Msg("WopiDiscovery: wopi app url failed with unexpected code")
 		return nil, errors.New("status code was not 200")
 	}
 

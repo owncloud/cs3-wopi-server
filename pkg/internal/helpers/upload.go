@@ -119,7 +119,7 @@ func UploadFile(ctx context.Context, content io.ReadCloser, ref *providerv1beta1
 			Str("Endpoint", uploadEndpoint).
 			Bool("HasUploadToken", hasUploadToken).
 			Int("HttpCode", httpResp.StatusCode).
-			Msg("UploadHelper: Put request to the upload endpoint failed")
+			Msg("UploadHelper: Put request to the upload endpoint failed with unexpected status")
 		return errors.New("Put request failed with status " + strconv.Itoa(httpResp.StatusCode))
 	}
 

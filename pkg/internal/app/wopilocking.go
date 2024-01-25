@@ -44,7 +44,7 @@ func GetLock(app *demoApp, w http.ResponseWriter, r *http.Request) {
 			Str("Requester", wopiContext.User.GetId().String()).
 			Str("StatusCode", resp.Status.Code.String()).
 			Str("StatusMsg", resp.Status.Message).
-			Msg("GetLock failed with status " + resp.Status.Code.String())
+			Msg("GetLock failed with unexpected status")
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
 	}
@@ -157,7 +157,7 @@ func Lock(app *demoApp, w http.ResponseWriter, r *http.Request) {
 				Str("RequestedLockID", lockID).
 				Str("StatusCode", resp.Status.Code.String()).
 				Str("StatusMsg", resp.Status.Message).
-				Msg("SetLock failed, fallback to GetLock failed with status " + resp.Status.Code.String())
+				Msg("SetLock failed, fallback to GetLock failed with unexpected status")
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		}
 
@@ -205,7 +205,7 @@ func Lock(app *demoApp, w http.ResponseWriter, r *http.Request) {
 			Str("RequestedLockID", lockID).
 			Str("StatusCode", resp.Status.Code.String()).
 			Str("StatusMsg", resp.Status.Message).
-			Msg("SetLock failed with status " + resp.Status.Code.String())
+			Msg("SetLock failed with unexpected status")
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
@@ -265,7 +265,7 @@ func UnLock(app *demoApp, w http.ResponseWriter, r *http.Request) {
 			Str("RequestedLockID", lockID).
 			Str("StatusCode", resp.Status.Code.String()).
 			Str("StatusMsg", resp.Status.Message).
-			Msg("Unlock failed with status code " + resp.Status.Code.String())
+			Msg("Unlock failed with unexpected status")
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
