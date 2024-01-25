@@ -2,7 +2,7 @@ package cs3wopiserver
 
 import (
 	"context"
-	"github.com/wkloucek/cs3-wopi-server/pkg/internal/app"
+	"github.com/owncloud/cs3-wopi-server/pkg/internal/app"
 	"os"
 	"os/signal"
 	"syscall"

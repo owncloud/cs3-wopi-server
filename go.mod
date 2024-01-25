@@ -1,4 +1,4 @@
-module github.com/wkloucek/cs3-wopi-server
+module github.com/owncloud/cs3-wopi-server
 
 go 1.21
 

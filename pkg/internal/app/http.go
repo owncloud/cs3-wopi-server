@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
-	"github.com/wkloucek/cs3-wopi-server/pkg/internal/middleware"
+	"github.com/owncloud/cs3-wopi-server/pkg/internal/middleware"
 )
 
 func (app *demoApp) HTTPServer(ctx context.Context) error {

@@ -4,7 +4,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/wkloucek/cs3-wopi-server/pkg/internal/helpers"
+	"github.com/owncloud/cs3-wopi-server/pkg/internal/helpers"
 )
 
 // GetFile downloads the file from the storage
