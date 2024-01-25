@@ -24,7 +24,14 @@ func GetFile(app *demoApp, w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err != nil || resp.StatusCode != http.StatusOK {
-		app.Logger.Error().Err(err).Str("status_code", http.StatusText(resp.StatusCode)).Str("FileReference", wopiContext.FileReference.String()).Msg("GetFile: downloading the file failed")
+		app.Logger.Error().
+			Err(err).
+			Str("FileReference", wopiContext.FileReference.String()).
+			Str("ViewMode", wopiContext.ViewMode.String()).
+			Str("Requester", wopiContext.User.GetUsername()).
+			Str("RequesterDisplayName", wopiContext.User.GetDisplayName()).
+			Int("HttpCode", resp.StatusCode).
+			Msg("GetFile: downloading the file failed")
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
@@ -33,11 +40,22 @@ func GetFile(app *demoApp, w http.ResponseWriter, r *http.Request) {
 	defer resp.Body.Close()
 	_, err = io.Copy(w, resp.Body)
 	if err != nil {
-		app.Logger.Error().Str("FileReference", wopiContext.FileReference.String()).Msg("GetFile: copying the file content to the response body failed")
+		app.Logger.Error().
+			Str("FileReference", wopiContext.FileReference.String()).
+			Str("ViewMode", wopiContext.ViewMode.String()).
+			Str("Requester", wopiContext.User.GetUsername()).
+			Str("RequesterDisplayName", wopiContext.User.GetDisplayName()).
+			Msg("GetFile: copying the file content to the response body failed")
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
+	app.Logger.Debug().
+		Str("FileReference", wopiContext.FileReference.String()).
+		Str("ViewMode", wopiContext.ViewMode.String()).
+		Str("Requester", wopiContext.User.GetUsername()).
+		Str("RequesterDisplayName", wopiContext.User.GetDisplayName()).
+		Msg("GetFile: success")
 	http.Error(w, "", http.StatusOK)
 }
 
@@ -63,10 +81,22 @@ func PutFile(app *demoApp, w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err != nil {
-		app.Logger.Error().Err(err).Str("FileReference", wopiContext.FileReference.String()).Msg("PutFile: uploading the file failed")
+		app.Logger.Error().
+			Err(err).
+			Str("FileReference", wopiContext.FileReference.String()).
+			Str("ViewMode", wopiContext.ViewMode.String()).
+			Str("Requester", wopiContext.User.GetUsername()).
+			Str("RequesterDisplayName", wopiContext.User.GetDisplayName()).
+			Msg("PutFile: uploading the file failed")
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
+	app.Logger.Debug().
+		Str("FileReference", wopiContext.FileReference.String()).
+		Str("ViewMode", wopiContext.ViewMode.String()).
+		Str("Requester", wopiContext.User.GetUsername()).
+		Str("RequesterDisplayName", wopiContext.User.GetDisplayName()).
+		Msg("PutFile: success")
 	http.Error(w, "", http.StatusOK)
 }

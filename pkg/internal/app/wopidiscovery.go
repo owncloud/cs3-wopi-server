@@ -6,15 +6,18 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/beevik/etree"
+	"github.com/owncloud/ocis/v2/ocis-pkg/log"
 	"github.com/pkg/errors"
 )
 
 func (app *demoApp) WopiDiscovery(ctx context.Context) error {
-	res, err := getAppURLs(app.Config.WopiApp.Addr, app.Config.WopiApp.Insecure)
+	res, err := getAppURLs(app.Config.WopiApp.Addr, app.Config.WopiApp.Insecure, app.Logger)
 	if err != nil {
+		// logging is already covered inside the `getAppURLs` function
 		return err
 	}
 
@@ -22,7 +25,7 @@ func (app *demoApp) WopiDiscovery(ctx context.Context) error {
 	return nil
 }
 
-func getAppURLs(wopiAppUrl string, insecure bool) (map[string]map[string]string, error) {
+func getAppURLs(wopiAppUrl string, insecure bool, logger log.Logger) (map[string]map[string]string, error) {
 
 	wopiAppUrl = wopiAppUrl + "/hosting/discovery"
 
@@ -36,10 +39,18 @@ func getAppURLs(wopiAppUrl string, insecure bool) (map[string]map[string]string,
 
 	httpResp, err := httpClient.Get(wopiAppUrl)
 	if err != nil {
+		logger.Error().
+			Err(err).
+			Str("WopiAppUrl", wopiAppUrl).
+			Msg("WopiDiscovery: failed to access wopi app url")
 		return nil, err
 	}
 
 	if httpResp.StatusCode != http.StatusOK {
+		logger.Error().
+			Str("WopiAppUrl", wopiAppUrl).
+			Int("HttpCode", httpResp.StatusCode).
+			Msg("WopiDiscovery: wopi app url failed with code " + strconv.Itoa(httpResp.StatusCode))
 		return nil, errors.New("status code was not 200")
 	}
 
@@ -49,9 +60,16 @@ func getAppURLs(wopiAppUrl string, insecure bool) (map[string]map[string]string,
 
 	appURLs, err = parseWopiDiscovery(httpResp.Body)
 	if err != nil {
+		logger.Error().
+			Err(err).
+			Str("WopiAppUrl", wopiAppUrl).
+			Msg("WopiDiscovery: failed to parse wopi discovery response")
 		return nil, errors.Wrap(err, "error parsing wopi discovery response")
 	}
 
+	// TODO: Log appUrls? not easy with the format
+	// It's also a one-time call during service setup, so it's pointless
+	// to use an "all-is-good" debug log
 	return appURLs, nil
 }
 

@@ -29,36 +29,40 @@ func DownloadFile(
 
 	resp, err := gwc.InitiateFileDownload(ctx, req)
 	if err != nil {
-		logger.Error().Err(
-			err,
-		).Str(
-			"FileReference", ref.String(),
-		).Msg("DownloadHelper: InitiateFileDownload failed")
+		logger.Error().
+			Err(err).
+			Str("FileReference", ref.String()).
+			Msg("DownloadHelper: InitiateFileDownload failed")
 		return http.Response{}, err
 	}
 
 	if resp.Status.Code != rpcv1beta1.Code_CODE_OK {
-		logger.Error().Str(
-			"status_code", resp.Status.Code.String(),
-		).Str(
-			"status_msg", resp.Status.Message,
-		).Str(
-			"FileReference", ref.String(),
-		).Msg("DownloadHelper: InitiateFileDownload failed")
-		return http.Response{}, errors.New("status code != CODE_OK")
+		logger.Error().
+			Str("FileReference", ref.String()).
+			Str("StatusCode", resp.Status.Code.String()).
+			Str("StatusMsg", resp.Status.Message).
+			Msg("DownloadHelper: InitiateFileDownload failed with wrong status")
+		return http.Response{}, errors.New("InitiateFileDownload failed with status " + resp.Status.Code.String())
 	}
 
 	downloadEndpoint := ""
 	downloadToken := ""
+	hasDownloadToken := false
 
 	for _, proto := range resp.Protocols {
 		if proto.Protocol == "simple" || proto.Protocol == "spaces" {
 			downloadEndpoint = proto.DownloadEndpoint
 			downloadToken = proto.Token
+			hasDownloadToken = proto.Token != ""
 		}
 	}
 
 	if downloadEndpoint == "" {
+		logger.Error().
+			Str("FileReference", ref.String()).
+			Str("Endpoint", downloadEndpoint).
+			Bool("HasDownloadToken", hasDownloadToken).
+			Msg("DownloadHelper: Download endpoint or token is missing")
 		return http.Response{}, errors.New("download endpoint is missing")
 	}
 
@@ -70,8 +74,14 @@ func DownloadFile(
 		},
 	}
 
-	httpReq, err := http.NewRequest(http.MethodGet, downloadEndpoint, bytes.NewReader([]byte("")))
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodGet, downloadEndpoint, bytes.NewReader([]byte("")))
 	if err != nil {
+		logger.Error().
+			Err(err).
+			Str("FileReference", ref.String()).
+			Str("Endpoint", downloadEndpoint).
+			Bool("HasDownloadToken", hasDownloadToken).
+			Msg("DownloadHelper: Could not create the request to the endpoint")
 		return http.Response{}, err
 	}
 	if downloadToken != "" {
@@ -83,6 +93,12 @@ func DownloadFile(
 
 	httpResp, err := httpClient.Do(httpReq)
 	if err != nil {
+		logger.Error().
+			Err(err).
+			Str("FileReference", ref.String()).
+			Str("Endpoint", downloadEndpoint).
+			Bool("HasDownloadToken", hasDownloadToken).
+			Msg("DownloadHelper: Get request to the download endpoint failed")
 		return http.Response{}, err
 	}
 

@@ -24,18 +24,29 @@ func GetLock(app *demoApp, w http.ResponseWriter, r *http.Request) {
 	req := &providerv1beta1.GetLockRequest{
 		Ref: &wopiContext.FileReference,
 	}
-	resp, err := app.gwc.GetLock(
-		ctx,
-		req,
-	)
+
+	resp, err := app.gwc.GetLock(ctx, req)
 	if err != nil {
-		app.Logger.Error().Err(err).Str("FileReference", wopiContext.FileReference.String()).Msg("GetLock failed")
+		app.Logger.Error().
+			Err(err).
+			Str("FileReference", wopiContext.FileReference.String()).
+			Str("ViewMode", wopiContext.ViewMode.String()).
+			Str("Requester", wopiContext.User.GetUsername()).
+			Str("RequesterDisplayName", wopiContext.User.GetDisplayName()).
+			Msg("GetLock failed")
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
 	if resp.Status.Code != rpcv1beta1.Code_CODE_OK {
-		app.Logger.Error().Str("status_code", resp.Status.Code.String()).Str("status_msg", resp.Status.Message).Str("FileReference", wopiContext.FileReference.String()).Msg("GetLock failed")
+		app.Logger.Error().
+			Str("FileReference", wopiContext.FileReference.String()).
+			Str("ViewMode", wopiContext.ViewMode.String()).
+			Str("Requester", wopiContext.User.GetUsername()).
+			Str("RequesterDisplayName", wopiContext.User.GetDisplayName()).
+			Str("StatusCode", resp.Status.Code.String()).
+			Str("StatusMsg", resp.Status.Message).
+			Msg("GetLock failed with status " + resp.Status.Code.String())
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
 	}
@@ -44,6 +55,17 @@ func GetLock(app *demoApp, w http.ResponseWriter, r *http.Request) {
 	if resp.Lock != nil {
 		lockID = resp.Lock.LockId
 	}
+
+	// log the success at debug level
+	app.Logger.Debug().
+		Str("FileReference", wopiContext.FileReference.String()).
+		Str("ViewMode", wopiContext.ViewMode.String()).
+		Str("Requester", wopiContext.User.GetUsername()).
+		Str("RequesterDisplayName", wopiContext.User.GetDisplayName()).
+		Str("StatusCode", resp.Status.Code.String()).
+		Str("LockID", lockID).
+		Msg("GetLock success")
+
 	w.Header().Set(HeaderWopiLock, lockID)
 	http.Error(w, http.StatusText(http.StatusOK), http.StatusOK)
 }
@@ -59,6 +81,12 @@ func Lock(app *demoApp, w http.ResponseWriter, r *http.Request) {
 
 	lockID := r.Header.Get(HeaderWopiLock)
 	if lockID == "" {
+		app.Logger.Error().
+			Str("FileReference", wopiContext.FileReference.String()).
+			Str("ViewMode", wopiContext.ViewMode.String()).
+			Str("Requester", wopiContext.User.GetUsername()).
+			Str("RequesterDisplayName", wopiContext.User.GetDisplayName()).
+			Msg("Lock failed due to empty lockID")
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
@@ -75,19 +103,37 @@ func Lock(app *demoApp, w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	app.Logger.Debug().Str("lock_id", lockID).Str("FileReference", wopiContext.FileReference.String()).Msg("Performing SetLock")
-	resp, err := app.gwc.SetLock(
-		ctx,
-		req,
-	)
+	app.Logger.Debug().
+		Str("FileReference", wopiContext.FileReference.String()).
+		Str("ViewMode", wopiContext.ViewMode.String()).
+		Str("Requester", wopiContext.User.GetUsername()).
+		Str("RequesterDisplayName", wopiContext.User.GetDisplayName()).
+		Str("RequestedLockID", lockID).
+		Msg("Performing SetLock")
+
+	resp, err := app.gwc.SetLock(ctx, req)
 	if err != nil {
-		app.Logger.Error().Err(err).Str("lock_id", lockID).Str("FileReference", wopiContext.FileReference.String()).Msg("SetLock failed")
+		app.Logger.Error().
+			Err(err).
+			Str("FileReference", wopiContext.FileReference.String()).
+			Str("ViewMode", wopiContext.ViewMode.String()).
+			Str("Requester", wopiContext.User.GetUsername()).
+			Str("RequesterDisplayName", wopiContext.User.GetDisplayName()).
+			Str("RequestedLockID", lockID).
+			Msg("SetLock failed")
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
 	switch resp.Status.Code {
 	case rpcv1beta1.Code_CODE_OK:
+		app.Logger.Debug().
+			Str("FileReference", wopiContext.FileReference.String()).
+			Str("ViewMode", wopiContext.ViewMode.String()).
+			Str("Requester", wopiContext.User.GetUsername()).
+			Str("RequesterDisplayName", wopiContext.User.GetDisplayName()).
+			Str("RequestedLockID", lockID).
+			Msg("SetLock successful")
 		http.Error(w, http.StatusText(http.StatusOK), http.StatusOK)
 		return
 
@@ -96,23 +142,44 @@ func Lock(app *demoApp, w http.ResponseWriter, r *http.Request) {
 		req := &providerv1beta1.GetLockRequest{
 			Ref: &wopiContext.FileReference,
 		}
-		resp, err := app.gwc.GetLock(
-			ctx,
-			req,
-		)
+
+		resp, err := app.gwc.GetLock(ctx, req)
 		if err != nil {
-			app.Logger.Error().Err(err).Str("lock_id", lockID).Str("FileReference", wopiContext.FileReference.String()).Msg("SetLock failed, fallback to GetLock failed too")
+			app.Logger.Error().
+				Err(err).
+				Str("FileReference", wopiContext.FileReference.String()).
+				Str("ViewMode", wopiContext.ViewMode.String()).
+				Str("Requester", wopiContext.User.GetUsername()).
+				Str("RequesterDisplayName", wopiContext.User.GetDisplayName()).
+				Str("RequestedLockID", lockID).
+				Msg("SetLock failed, fallback to GetLock failed too")
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
 
 		if resp.Status.Code != rpcv1beta1.Code_CODE_OK {
-			app.Logger.Error().Str("status_code", resp.Status.Code.String()).Str("status_msg", resp.Status.Message).Str("lock_id", lockID).Str("FileReference", wopiContext.FileReference.String()).Msg("SetLock failed, fallback to GetLock failed too")
+			app.Logger.Error().
+				Str("FileReference", wopiContext.FileReference.String()).
+				Str("ViewMode", wopiContext.ViewMode.String()).
+				Str("Requester", wopiContext.User.GetUsername()).
+				Str("RequesterDisplayName", wopiContext.User.GetDisplayName()).
+				Str("RequestedLockID", lockID).
+				Str("StatusCode", resp.Status.Code.String()).
+				Str("StatusMsg", resp.Status.Message).
+				Msg("SetLock failed, fallback to GetLock failed with status " + resp.Status.Code.String())
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		}
 
 		if resp.Lock != nil {
 			if resp.Lock.LockId != lockID {
+				app.Logger.Warn().
+					Str("FileReference", wopiContext.FileReference.String()).
+					Str("ViewMode", wopiContext.ViewMode.String()).
+					Str("Requester", wopiContext.User.GetUsername()).
+					Str("RequesterDisplayName", wopiContext.User.GetDisplayName()).
+					Str("RequestedLockID", lockID).
+					Str("LockID", resp.Lock.LockId).
+					Msg("SetLock conflict")
 				w.Header().Set(HeaderWopiLock, resp.Lock.LockId)
 				http.Error(w, http.StatusText(http.StatusConflict), http.StatusConflict)
 				return
@@ -120,15 +187,38 @@ func Lock(app *demoApp, w http.ResponseWriter, r *http.Request) {
 
 			// TODO: according to the spec we need to treat this as a RefreshLock
 
+			app.Logger.Warn().
+				Str("FileReference", wopiContext.FileReference.String()).
+				Str("ViewMode", wopiContext.ViewMode.String()).
+				Str("Requester", wopiContext.User.GetUsername()).
+				Str("RequesterDisplayName", wopiContext.User.GetDisplayName()).
+				Str("RequestedLockID", lockID).
+				Str("LockID", resp.Lock.LockId).
+				Msg("SetLock lock refreshed instead")
 			http.Error(w, http.StatusText(http.StatusOK), http.StatusOK)
 			return
 		}
 
+		app.Logger.Error().
+			Str("FileReference", wopiContext.FileReference.String()).
+			Str("ViewMode", wopiContext.ViewMode.String()).
+			Str("Requester", wopiContext.User.GetUsername()).
+			Str("RequesterDisplayName", wopiContext.User.GetDisplayName()).
+			Str("RequestedLockID", lockID).
+			Msg("SetLock failed and could not refresh")
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
 
 	default:
-		app.Logger.Error().Str("status_code", resp.Status.Code.String()).Str("status_msg", resp.Status.Message).Str("lock_id", lockID).Str("FileReference", wopiContext.FileReference.String()).Msg("SetLock failed")
+		app.Logger.Error().
+			Str("FileReference", wopiContext.FileReference.String()).
+			Str("ViewMode", wopiContext.ViewMode.String()).
+			Str("Requester", wopiContext.User.GetUsername()).
+			Str("RequesterDisplayName", wopiContext.User.GetDisplayName()).
+			Str("RequestedLockID", lockID).
+			Str("StatusCode", resp.Status.Code.String()).
+			Str("StatusMsg", resp.Status.Message).
+			Msg("SetLock failed with status " + resp.Status.Code.String())
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
@@ -150,6 +240,12 @@ func UnLock(app *demoApp, w http.ResponseWriter, r *http.Request) {
 
 	lockID := r.Header.Get(HeaderWopiLock)
 	if lockID == "" {
+		app.Logger.Error().
+			Str("FileReference", wopiContext.FileReference.String()).
+			Str("ViewMode", wopiContext.ViewMode.String()).
+			Str("Requester", wopiContext.User.GetUsername()).
+			Str("RequesterDisplayName", wopiContext.User.GetDisplayName()).
+			Msg("Unlock failed due to empty lockID")
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
@@ -162,21 +258,40 @@ func UnLock(app *demoApp, w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	resp, err := app.gwc.Unlock(
-		ctx,
-		req,
-	)
+	resp, err := app.gwc.Unlock(ctx, req)
 	if err != nil {
-		app.Logger.Error().Err(err).Str("lock_id", lockID).Str("FileReference", wopiContext.FileReference.String()).Msg("UnLock failed")
+		app.Logger.Error().
+			Err(err).
+			Str("FileReference", wopiContext.FileReference.String()).
+			Str("ViewMode", wopiContext.ViewMode.String()).
+			Str("Requester", wopiContext.User.GetUsername()).
+			Str("RequesterDisplayName", wopiContext.User.GetDisplayName()).
+			Str("RequestedLockID", lockID).
+			Msg("Unlock failed")
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
 	if resp.Status.Code != rpcv1beta1.Code_CODE_OK {
-		app.Logger.Error().Str("status_code", resp.Status.Code.String()).Str("status_msg", resp.Status.Message).Str("lock_id", lockID).Str("FileReference", wopiContext.FileReference.String()).Msg("UnLock failed")
+		app.Logger.Error().
+			Str("FileReference", wopiContext.FileReference.String()).
+			Str("ViewMode", wopiContext.ViewMode.String()).
+			Str("Requester", wopiContext.User.GetUsername()).
+			Str("RequesterDisplayName", wopiContext.User.GetDisplayName()).
+			Str("RequestedLockID", lockID).
+			Str("StatusCode", resp.Status.Code.String()).
+			Str("StatusMsg", resp.Status.Message).
+			Msg("Unlock failed with status code " + resp.Status.Code.String())
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
+	app.Logger.Debug().
+		Str("FileReference", wopiContext.FileReference.String()).
+		Str("ViewMode", wopiContext.ViewMode.String()).
+		Str("Requester", wopiContext.User.GetUsername()).
+		Str("RequesterDisplayName", wopiContext.User.GetDisplayName()).
+		Str("RequestedLockID", lockID).
+		Msg("Unlock successful")
 	http.Error(w, http.StatusText(http.StatusOK), http.StatusOK)
 }

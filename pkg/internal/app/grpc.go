@@ -51,6 +51,12 @@ func (app *demoApp) OpenInApp(
 		}
 	}
 
+	// required for the response, it will be used also for logs
+	providerFileRef := providerv1beta1.Reference{
+		ResourceId: req.GetResourceInfo().Id,
+		Path:       ".",
+	}
+
 	// build a urlsafe and stable file reference that can be used for proxy routing,
 	// so that all sessions on one file end on the same office server
 
@@ -104,10 +110,24 @@ func (app *demoApp) OpenInApp(
 
 	viewAppURL, err = addWopiSrcQueryParam(viewAppURL)
 	if err != nil {
+		app.Logger.Error().
+			Err(err).
+			Str("FileReference", providerFileRef.String()).
+			Str("ViewMode", req.ViewMode.String()).
+			Str("Requester", user.GetUsername()).
+			Str("RequesterDisplayName", user.GetDisplayName()).
+			Msg("OpenInApp: error parsing viewAppUrl")
 		return nil, err
 	}
 	editAppURL, err = addWopiSrcQueryParam(editAppURL)
 	if err != nil {
+		app.Logger.Error().
+			Err(err).
+			Str("FileReference", providerFileRef.String()).
+			Str("ViewMode", req.ViewMode.String()).
+			Str("Requester", user.GetUsername()).
+			Str("RequesterDisplayName", user.GetDisplayName()).
+			Msg("OpenInApp: error parsing editAppUrl")
 		return nil, err
 	}
 
@@ -118,28 +138,38 @@ func (app *demoApp) OpenInApp(
 
 	cryptedReqAccessToken, err := EncryptAES([]byte(app.Config.WopiSecret), req.AccessToken)
 	if err != nil {
+		app.Logger.Error().
+			Err(err).
+			Str("FileReference", providerFileRef.String()).
+			Str("ViewMode", req.ViewMode.String()).
+			Str("Requester", user.GetUsername()).
+			Str("RequesterDisplayName", user.GetDisplayName()).
+			Msg("OpenInApp: error encrypting access token")
 		return &appproviderv1beta1.OpenInAppResponse{
 			Status: &rpcv1beta1.Status{Code: rpcv1beta1.Code_CODE_INTERNAL},
 		}, err
 	}
 
 	wopiContext := WopiContext{
-		AccessToken: cryptedReqAccessToken,
-		FileReference: providerv1beta1.Reference{
-			ResourceId: req.GetResourceInfo().Id,
-			Path:       ".",
-		},
-		User:     user,
-		ViewMode: req.ViewMode,
-
-		EditAppUrl: editAppURL,
-		ViewAppUrl: viewAppURL,
+		AccessToken:   cryptedReqAccessToken,
+		FileReference: providerFileRef,
+		User:          user,
+		ViewMode:      req.ViewMode,
+		EditAppUrl:    editAppURL,
+		ViewAppUrl:    viewAppURL,
 	}
 
 	cs3Claims := &jwt.StandardClaims{}
 	cs3JWTparser := jwt.Parser{}
 	_, _, err = cs3JWTparser.ParseUnverified(req.AccessToken, cs3Claims)
 	if err != nil {
+		app.Logger.Error().
+			Err(err).
+			Str("FileReference", providerFileRef.String()).
+			Str("ViewMode", req.ViewMode.String()).
+			Str("Requester", user.GetUsername()).
+			Str("RequesterDisplayName", user.GetDisplayName()).
+			Msg("OpenInApp: error parsing JWT token")
 		return nil, err
 	}
 
@@ -154,10 +184,24 @@ func (app *demoApp) OpenInApp(
 	accessToken, err := token.SignedString([]byte(app.Config.WopiSecret))
 
 	if err != nil {
+		app.Logger.Error().
+			Err(err).
+			Str("FileReference", providerFileRef.String()).
+			Str("ViewMode", req.ViewMode.String()).
+			Str("Requester", user.GetUsername()).
+			Str("RequesterDisplayName", user.GetDisplayName()).
+			Msg("OpenInApp: error signing access token")
 		return &appproviderv1beta1.OpenInAppResponse{
 			Status: &rpcv1beta1.Status{Code: rpcv1beta1.Code_CODE_INTERNAL},
 		}, err
 	}
+
+	app.Logger.Debug().
+		Str("FileReference", providerFileRef.String()).
+		Str("ViewMode", req.ViewMode.String()).
+		Str("Requester", user.GetUsername()).
+		Str("RequesterDisplayName", user.GetDisplayName()).
+		Msg("OpenInApp: success")
 
 	return &appproviderv1beta1.OpenInAppResponse{
 		Status: &rpcv1beta1.Status{Code: rpcv1beta1.Code_CODE_OK},

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"strconv"
 
 	gatewayv1beta1 "github.com/cs3org/go-cs3apis/cs3/gateway/v1beta1"
 	rpcv1beta1 "github.com/cs3org/go-cs3apis/cs3/rpc/v1beta1"
@@ -26,29 +27,44 @@ func UploadFile(ctx context.Context, content io.ReadCloser, ref *providerv1beta1
 
 	resp, err := gwc.InitiateFileUpload(ctx, req)
 	if err != nil {
-		logger.Error().Err(
-			err,
-		).Str(
-			"FileReference", ref.String(),
-		).Msg("UploadHelper: InitiateFileUpload failed")
+		logger.Error().
+			Err(err).
+			Str("FileReference", ref.String()).
+			Str("RequestedLockID", lockID).
+			Msg("UploadHelper: InitiateFileUpload failed")
 		return err
 	}
 
 	if resp.Status.Code != rpcv1beta1.Code_CODE_OK {
-		return errors.New("status code != CODE_OK")
+		logger.Error().
+			Str("FileReference", ref.String()).
+			Str("RequestedLockID", lockID).
+			Str("StatusCode", resp.Status.Code.String()).
+			Str("StatusMsg", resp.Status.Message).
+			Msg("UploadHelper: InitiateFileUpload failed with wrong status")
+		return errors.New("InitiateFileUpload failed with status " + resp.Status.Code.String())
 	}
 
 	uploadEndpoint := ""
 	uploadToken := ""
+	hasUploadToken := false
 
 	for _, proto := range resp.Protocols {
 		if proto.Protocol == "simple" || proto.Protocol == "spaces" {
 			uploadEndpoint = proto.UploadEndpoint
 			uploadToken = proto.Token
+			hasUploadToken = proto.Token != ""
+			break
 		}
 	}
 
 	if uploadEndpoint == "" {
+		logger.Error().
+			Str("FileReference", ref.String()).
+			Str("RequestedLockID", lockID).
+			Str("Endpoint", uploadEndpoint).
+			Bool("HasUploadToken", hasUploadToken).
+			Msg("UploadHelper: Upload endpoint or token is missing")
 		return errors.New("upload endpoint or token is missing")
 	}
 
@@ -60,8 +76,15 @@ func UploadFile(ctx context.Context, content io.ReadCloser, ref *providerv1beta1
 		},
 	}
 
-	httpReq, err := http.NewRequest(http.MethodPut, uploadEndpoint, content)
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPut, uploadEndpoint, content)
 	if err != nil {
+		logger.Error().
+			Err(err).
+			Str("FileReference", ref.String()).
+			Str("RequestedLockID", lockID).
+			Str("Endpoint", uploadEndpoint).
+			Bool("HasUploadToken", hasUploadToken).
+			Msg("UploadHelper: Could not create the request to the endpoint")
 		return err
 	}
 
@@ -79,11 +102,25 @@ func UploadFile(ctx context.Context, content io.ReadCloser, ref *providerv1beta1
 
 	httpResp, err := httpClient.Do(httpReq)
 	if err != nil {
+		logger.Error().
+			Err(err).
+			Str("FileReference", ref.String()).
+			Str("RequestedLockID", lockID).
+			Str("Endpoint", uploadEndpoint).
+			Bool("HasUploadToken", hasUploadToken).
+			Msg("UploadHelper: Put request to the upload endpoint failed")
 		return err
 	}
 
 	if httpResp.StatusCode != http.StatusOK {
-		return errors.New("status code was not 200")
+		logger.Error().
+			Str("FileReference", ref.String()).
+			Str("RequestedLockID", lockID).
+			Str("Endpoint", uploadEndpoint).
+			Bool("HasUploadToken", hasUploadToken).
+			Int("HttpCode", httpResp.StatusCode).
+			Msg("UploadHelper: Put request to the upload endpoint failed")
+		return errors.New("Put request failed with status " + strconv.Itoa(httpResp.StatusCode))
 	}
 
 	return nil
