@@ -13,6 +13,8 @@ import (
 )
 
 func WopiInfoHandler(app *demoApp, w http.ResponseWriter, r *http.Request) {
+	// Logs for this endpoint will be covered by the access log. We can't extract
+	// more info
 	http.Error(w, http.StatusText(http.StatusTeapot), http.StatusTeapot)
 }
 
@@ -26,13 +28,24 @@ func CheckFileInfo(app *demoApp, w http.ResponseWriter, r *http.Request) {
 		Ref: &wopiContext.FileReference,
 	})
 	if err != nil {
-		app.Logger.Error().Err(err).Str("FileReference", wopiContext.FileReference.String()).Msg("CheckFileInfo: stat failed")
+		app.Logger.Error().
+			Err(err).
+			Str("FileReference", wopiContext.FileReference.String()).
+			Str("ViewMode", wopiContext.ViewMode.String()).
+			Str("Requester", wopiContext.User.GetId().String()).
+			Msg("CheckFileInfo: stat failed")
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
 	if statRes.Status.Code != rpcv1beta1.Code_CODE_OK {
-		app.Logger.Error().Str("status_code", statRes.Status.Code.String()).Str("FileReference", wopiContext.FileReference.String()).Msg("CheckFileInfo: stat failed")
+		app.Logger.Error().
+			Str("FileReference", wopiContext.FileReference.String()).
+			Str("ViewMode", wopiContext.ViewMode.String()).
+			Str("Requester", wopiContext.User.GetId().String()).
+			Str("StatusCode", statRes.Status.Code.String()).
+			Str("StatusMsg", statRes.Status.Message).
+			Msg("CheckFileInfo: stat failed with unexpected status")
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
@@ -101,9 +114,21 @@ func CheckFileInfo(app *demoApp, w http.ResponseWriter, r *http.Request) {
 
 	jsonFileInfo, err := json.Marshal(fileInfo)
 	if err != nil {
+		app.Logger.Error().
+			Err(err).
+			Str("FileReference", wopiContext.FileReference.String()).
+			Str("ViewMode", wopiContext.ViewMode.String()).
+			Str("Requester", wopiContext.User.GetId().String()).
+			Msg("CheckFileInfo: failed to marshal fileinfo")
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
+
+	app.Logger.Debug().
+		Str("FileReference", wopiContext.FileReference.String()).
+		Str("ViewMode", wopiContext.ViewMode.String()).
+		Str("Requester", wopiContext.User.GetId().String()).
+		Msg("CheckFileInfo: success")
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(jsonFileInfo)
