@@ -6,7 +6,7 @@ import (
 
 	"github.com/dchest/uniuri"
 	"github.com/owncloud/ocis/v2/ocis-pkg/log"
-	"github.com/wkloucek/cs3-wopi-server/pkg/internal/logging"
+	"github.com/owncloud/cs3-wopi-server/pkg/internal/logging"
 
 	registryv1beta1 "github.com/cs3org/go-cs3apis/cs3/app/registry/v1beta1"
 	gatewayv1beta1 "github.com/cs3org/go-cs3apis/cs3/gateway/v1beta1"
@@ -79,14 +79,14 @@ func New() (*demoApp, error) {
 			AppName:        "WOPI app",
 			AppDescription: "Open office documents with a WOPI app",
 			AppIcon:        "image-edit",
-			AppLockName:    "com.github.wkloucek.cs3-wopi-server",
+			AppLockName:    "com.github.owncloud.cs3-wopi-server",
 			WopiSecret:     uniuri.NewLen(32),
 			CS3api: CS3api{
 				GatewayServiceName:     "com.owncloud.api.gateway",
 				CS3DataGatewayInsecure: true, // TODO: this should have a secure default
 			},
 			Service: Service{
-				Namespace: "com.github.wkloucek.cs3-wopi-server",
+				Namespace: "com.github.owncloud.cs3-wopi-server",
 			},
 			GRPC: GRPC{
 				BindAddr: "127.0.0.1:5678",

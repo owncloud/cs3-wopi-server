@@ -77,7 +77,7 @@ services:
     restart: always
 
   wopiserver-collabora:
-    image: wkloucek/cs3-wopi-server:${WOPISERVER_DOCKER_TAG:-latest}
+    image: owncloud/cs3-wopi-server:${WOPISERVER_DOCKER_TAG:-latest}
     networks:
       ocis-net:
     environment:
@@ -110,7 +110,7 @@ services:
     restart: always
 
   wopiserver-onlyoffice:
-    image: wkloucek/cs3-wopi-server:${WOPISERVER_DOCKER_TAG:-latest}
+    image: owncloud/cs3-wopi-server:${WOPISERVER_DOCKER_TAG:-latest}
     networks:
       ocis-net:
     environment:

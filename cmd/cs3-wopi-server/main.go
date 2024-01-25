@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/wkloucek/cs3-wopi-server/pkg/cs3wopiserver"
+	"github.com/owncloud/cs3-wopi-server/pkg/cs3wopiserver"
 )
 
 func main() {
