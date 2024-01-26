@@ -2,15 +2,17 @@ package cs3wopiserver
 
 import (
 	"context"
-	"github.com/owncloud/cs3-wopi-server/pkg/internal/app"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/owncloud/cs3-wopi-server/pkg/internal/app"
 )
 
 func Start() error {
 	ctx := context.Background()
 
+	// app will be configured with environment vars automatically
 	app, err := app.New()
 	if err != nil {
 		return err

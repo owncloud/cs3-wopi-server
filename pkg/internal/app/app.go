@@ -4,9 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/dchest/uniuri"
 	"github.com/owncloud/ocis/v2/ocis-pkg/log"
-	"github.com/owncloud/cs3-wopi-server/pkg/internal/logging"
 
 	registryv1beta1 "github.com/cs3org/go-cs3apis/cs3/app/registry/v1beta1"
 	gatewayv1beta1 "github.com/cs3org/go-cs3apis/cs3/gateway/v1beta1"
@@ -18,35 +16,6 @@ import (
 	"github.com/owncloud/ocis/v2/ocis-pkg/registry"
 	"google.golang.org/grpc"
 )
-
-type Service struct {
-	Namespace string
-	Name      string `env:"WOPI_SERVICE_NAME"`
-}
-
-func (s Service) GetServiceFQDN() string {
-	return s.Namespace + "." + s.Name
-}
-
-type GRPC struct {
-	BindAddr string `env:"WOPI_GRPC_BIND_ADDR"`
-}
-
-type HTTP struct {
-	Addr     string `env:"WOPI_HTTP_ADDR"`
-	BindAddr string `env:"WOPI_HTTP_BIND_ADDR"`
-	Scheme   string `env:"WOPI_HTTP_SCHEME"`
-}
-
-type WopiApp struct {
-	Addr     string `env:"WOPI_APP_ADDR"`
-	Insecure bool   `env:"WOPI_APP_INSECURE"`
-}
-
-type CS3api struct {
-	GatewayServiceName     string `env:"WOPI_CS3API_GATEWAY_SERVICENAME"`
-	CS3DataGatewayInsecure bool   `env:"WOPI_CS3API_DATA_GATEWAY_INSECURE"`
-}
 
 type Config struct {
 	Service
@@ -73,45 +42,47 @@ type demoApp struct {
 	Logger log.Logger
 }
 
-func New() (*demoApp, error) {
-	app := &demoApp{
-		Config: Config{
-			AppName:        "WOPI app",
-			AppDescription: "Open office documents with a WOPI app",
-			AppIcon:        "image-edit",
-			AppLockName:    "com.github.owncloud.cs3-wopi-server",
-			WopiSecret:     uniuri.NewLen(32),
-			CS3api: CS3api{
-				GatewayServiceName:     "com.owncloud.api.gateway",
-				CS3DataGatewayInsecure: true, // TODO: this should have a secure default
-			},
-			Service: Service{
-				Namespace: "com.github.owncloud.cs3-wopi-server",
-			},
-			GRPC: GRPC{
-				BindAddr: "127.0.0.1:5678",
-			},
-			HTTP: HTTP{
-				Addr:     "127.0.0.1:6789",
-				BindAddr: "127.0.0.1:6789",
-				Scheme:   "http",
-			},
-			WopiApp: WopiApp{
-				Addr:     "https://127.0.0.1:8080",
-				Insecure: true, // TODO: this should have a secure default
-			},
-		},
-	}
+func New(opts ...Option) (*demoApp, error) {
+	// get the default options
+	options := GetDefaultOptions()
 
-	err := envdecode.Decode(app)
+	// overwrite values with the env variables
+	err := envdecode.Decode(&options)
 	if err != nil {
 		if !errors.Is(err, envdecode.ErrNoTargetFieldsAreSet) {
 			return nil, err
 		}
 	}
 
-	app.Logger = logging.Configure("wopiserver")
+	// a second overwrite with the options passed as parameters
+	for _, o := range opts {
+		o(&options)
+	}
 
+	// create instance using the final options
+	app := &demoApp{
+		Config: Config{
+			AppName:        options.AppName,
+			AppDescription: options.AppDescription,
+			AppIcon:        options.AppIcon,
+			AppLockName:    options.AppLockName,
+			WopiSecret:     options.WopiSecret,
+			CS3api:         options.CS3api,
+			Service:        options.Service,
+			GRPC:           options.GRPC,
+			HTTP:           options.HTTP,
+			WopiApp:        options.WopiApp,
+		},
+	}
+
+	// configure the app logger with the options
+	app.Logger = log.NewLogger(
+		log.Name("wopiserver"), // currently hardcoded
+		log.Level(options.Log.Level),
+		log.Pretty(options.Log.Pretty),
+		log.Color(options.Log.Color),
+		log.File(options.Log.File),
+	)
 	return app, nil
 }
 
