@@ -15,6 +15,10 @@ func (app *demoApp) HTTPServer(ctx context.Context) error {
 
 	r.Use(middleware.AccessLog(app.Logger))
 
+	r.Get("/healthcheck", func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, http.StatusText(http.StatusOK), http.StatusOK)
+	})
+
 	r.Route("/wopi", func(r chi.Router) {
 
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
