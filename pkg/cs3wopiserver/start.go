@@ -2,10 +2,11 @@ package cs3wopiserver
 
 import (
 	"context"
-	"github.com/owncloud/cs3-wopi-server/pkg/internal/app"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/owncloud/cs3-wopi-server/pkg/internal/app"
 )
 
 func Start() error {
@@ -36,6 +37,8 @@ func Start() error {
 		return err
 	}
 
+	// Setting up the HTTP server should be the last step because
+	// there is a healthcheck set inside.
 	if err := app.HTTPServer(ctx); err != nil {
 		return err
 	}
