@@ -24,7 +24,7 @@ func CheckFileInfo(app *demoApp, w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	wopiContext, _ := WopiContextFromCtx(ctx)
 
-	statRes, err := app.gwc.Stat(ctx, &providerv1beta1.StatRequest{
+	statRes, err := app.GatewayAPIClient.Stat(ctx, &providerv1beta1.StatRequest{
 		Ref: &wopiContext.FileReference,
 	})
 	if err != nil {
@@ -50,9 +50,11 @@ func CheckFileInfo(app *demoApp, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// must be a pointer otherwise empty files will not have the property set in JSON response
+	size := int64(statRes.Info.Size)
 	fileInfo := FileInfo{
 		OwnerID:           statRes.Info.Owner.OpaqueId + "@" + statRes.Info.Owner.Idp,
-		Size:              int64(statRes.Info.Size),
+		Size:              &size,
 		Version:           statRes.Info.Mtime.String(),
 		BaseFileName:      path.Base(statRes.Info.Path),
 		BreadcrumbDocName: path.Base(statRes.Info.Path),
@@ -68,8 +70,11 @@ func CheckFileInfo(app *demoApp, w http.ResponseWriter, r *http.Request) {
 
 		SupportsExtendedLockLength: true,
 
-		SupportsGetLock: true,
-		SupportsLocks:   true,
+		SupportsGetLock:        true,
+		SupportsLocks:          true,
+		SupportedShareUrlTypes: make([]string, 0),
+		SupportsContainers:     false,
+		SupportsAddActivities:  false,
 	}
 
 	switch wopiContext.ViewMode {

@@ -63,8 +63,8 @@ type Config struct {
 }
 
 type demoApp struct {
-	gwc        gatewayv1beta1.GatewayAPIClient
-	grpcServer *grpc.Server
+	GatewayAPIClient gatewayv1beta1.GatewayAPIClient
+	grpcServer       *grpc.Server
 
 	appURLs map[string]map[string]string
 
@@ -122,7 +122,7 @@ func (app *demoApp) GetCS3apiClient() error {
 	if err != nil {
 		return err
 	}
-	app.gwc = gwc
+	app.GatewayAPIClient = gwc
 
 	return nil
 }
@@ -161,7 +161,7 @@ func (app *demoApp) RegisterDemoApp(ctx context.Context) error {
 		},
 	}
 
-	resp, err := app.gwc.AddAppProvider(ctx, req)
+	resp, err := app.GatewayAPIClient.AddAppProvider(ctx, req)
 	if err != nil {
 		app.Logger.Error().Err(err).Msg("AddAppProvider failed")
 		return err
